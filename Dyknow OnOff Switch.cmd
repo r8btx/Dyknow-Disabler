@@ -40,7 +40,7 @@ echo.Initial setup in progress...
 set "getAdmin=%temp%\getadmin.vbs"
 if exist "%getAdmin%" del "%getAdmin%"
 
-cacls "%SystemRoot%\system32\config\system" >nul 2>&1
+whoami /groups |find " S-1-16-12288 " >nul 2>&1
 if '%Errorlevel%' neq '0' (
 	title Requesting..
 	<nul set /p =Requesting administrative privileges...
