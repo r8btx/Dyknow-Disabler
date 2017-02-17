@@ -2,6 +2,7 @@
 setlocal EnableDelayedExpansion
 
 :Main
+cls
 for /f "tokens=1-2 delims=:" %%a in ('type %0 ^|findstr /n /c:"END OF BATCH FILE"') do (
 	set "LineNum=%%a"
 )
@@ -16,26 +17,43 @@ if "%Srv1%"=="" goto :Setup
 for /f "tokens=3" %%a in ('sc query %Srv1% ^|findstr STATE') do (set "State=%%a")
 
 if "%State%"=="4" (
+	echo Switching Off...
 	call :Toggle Stop
 	call :Overwrite
+	timeout /t 1 >nul
 	goto :Eof
 ) else if "%State%"=="1" (
+	echo Switching On...
 	call :Toggle Start
+	timeout /t 2 >nul
 	goto :Eof
 ) else (
 	echo.The script is processing previous command or encountered an error.
-	timeout /nobreak /t 2 >nul
+	timeout /t 2 >nul
 )
 goto :Eof
 
 
 :Setup
 echo.Initial setup in progress...
-bcdedit > nul
-if not "%Errorlevel%" == "0" (
-	call :ErrorMsg "Access Denied" "This script requires higher permission"
-	goto :Eof
+
+set "getAdmin=%temp%\getadmin.vbs"
+if exist "%getAdmin%" del "%getAdmin%"
+
+whoami /groups |find " S-1-16-12288 " >nul 2>&1
+if '%Errorlevel%' neq '0' (
+	title Requesting..
+	<nul set /p =Requesting administrative privileges...
+	echo Set UAC = CreateObject^("Shell.Application"^) > "%getAdmin%"
+	echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%getAdmin%"
+	"%getAdmin%"
+	timeout /nobreak /t 1 >nul
+	echo Failed.
+	echo.
+	call :ErrorMsg "Access Denied" "Failed to acquire permission."
+	exit /b
 )
+taskkill /fi "WindowTitle eq Requesting.." >nul 2>&1
 for /f "tokens=2" %%a in ('whoami /user /fo list') do (set "UserSSID=%%a")
 
 for /f "tokens=5 delims=\" %%s in ('reg query "HKLM\SYSTEM\CurrentControlSet\Services" /s /t "Reg_Expand_SZ" /f "Dyknow" ^|findstr /c:"CurrentControlSet\Services"') do (
@@ -49,7 +67,7 @@ for /f "tokens=5 delims=\" %%s in ('reg query "HKLM\SYSTEM\CurrentControlSet\Ser
 )
 
 if not "%Exist%"=="True" (
-	call :ErrorMsg "Service NOT Found" "Could not find Dyknow service"
+	call :ErrorMsg "Service NOT Found" "Could not find Dyknow service."
 	goto :Eof
 )
 
@@ -74,6 +92,7 @@ goto :Eof
 
 ::---------------------------------------------------------
 :ErrorMsg <1=Message-title> <2=Content>
+echo Error Message:%2
 echo result ^= MsgBox ^(%2,vb, %1^) >>"%tmp%\ErrMsg.vbs"
 cscript /nologo "%tmp%\ErrMsg.vbs"
 del /f "%tmp%\ErrMsg.vbs" >nul
