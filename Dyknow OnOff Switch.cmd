@@ -20,12 +20,10 @@ if "%State%"=="4" (
 	echo Switching Off...
 	call :Toggle Stop
 	call :Overwrite
-	timeout /t 1 >nul
 	goto :Eof
 ) else if "%State%"=="1" (
 	echo Switching On...
 	call :Toggle Start
-	timeout /t 2 >nul
 	goto :Eof
 ) else (
 	echo.The script is processing previous command or encountered an error.
@@ -62,6 +60,7 @@ for /f "tokens=5 delims=\" %%s in ('reg query "HKLM\SYSTEM\CurrentControlSet\Ser
 		set "Edit=!Edit:~0,2!(A;;RPWPCR;;;%UserSSID%)!Edit:~2!"
 		sc sdset %%s "!Edit!" >nul
 	)
+	sc config %%s start=demand >nul
 	echo %%s>>%0
 	set "Exist=True"
 )
@@ -70,12 +69,12 @@ if not "%Exist%"=="True" (
 	call :ErrorMsg "Service NOT Found" "Could not find Dyknow service."
 	goto :Eof
 )
-
 goto :Main
 
 
 :Toggle <1=Start-or-Stop>
-for /l %%l in (1,1,%Cnt%) do (sc %1 !Srv%%l!)
+for /l %%l in (1,1,%Cnt%) do (sc %1 !Srv%%l! |find "STATE")
+timeout /t 2 >nul
 goto :Eof
 
 :Overwrite
@@ -98,3 +97,4 @@ cscript /nologo "%tmp%\ErrMsg.vbs"
 del /f "%tmp%\ErrMsg.vbs" >nul
 goto :Eof
 ::::::::::::::::::::::END OF BATCH FILE::::::::::::::::::::::
+RemMpSrv
