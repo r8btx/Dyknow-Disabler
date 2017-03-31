@@ -79,14 +79,7 @@ goto :Eof
 
 :Overwrite
 cd "C:\ProgramData\DyKnow\data"
-for /f "tokens=4-5" %%a in ('dir /s /-c ^|findstr /e dat') do (
-	fsutil file createnew %%btmp %%a >nul 2>&1
-)
-
-for /f "tokens=5-6 delims=\" %%a in ('dir /s /b ^|findstr /e dat') do (
-	del /q /f "%%a\%%b" >nul 2>&1
-	move "%%btmp" "%%a\%%b" >nul 2>&1
-)
+forfiles /m *.dat /s /c "cmd /c fsutil file setzerodata offset=0 length=@fsize @path"
 goto :Eof
 
 ::---------------------------------------------------------
@@ -97,4 +90,3 @@ cscript /nologo "%tmp%\ErrMsg.vbs"
 del /f "%tmp%\ErrMsg.vbs" >nul
 goto :Eof
 ::::::::::::::::::::::END OF BATCH FILE::::::::::::::::::::::
-RemMpSrv
