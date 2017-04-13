@@ -19,7 +19,7 @@ for /f "tokens=3" %%a in ('sc query %Srv1% ^|findstr STATE') do (set "State=%%a"
 if "%State%"=="4" (
 	echo Switching Off...
 	call :Toggle Stop
-	call :Overwrite
+	call :Overwrite >nul
 	goto :Eof
 ) else if "%State%"=="1" (
 	echo Switching On...
