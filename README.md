@@ -1,4 +1,4 @@
-# Dyknow On/Off Switch
+# Dyknow Disabler
 The goal is to create a batch script that can turn Dyknow monitoring service on and off from the non-administrative environment (Windows).
 
 ## Features
