@@ -1,4 +1,4 @@
-# Dyknow Disabler
+# Dyknow Disabler (Discontinued since 2017)
 The goal is to create a batch script that can turn Dyknow monitoring service on and off from the non-administrative environment (Windows).
 
 ## Features
